@@ -3,7 +3,9 @@
 import { useState, useRef } from "react";
 
 // Repository: ユーザー検索
-async function searchUserRepository(userId: string): Promise<{ id: string; name: string } | null> {
+async function searchUserRepository(
+  userId: string
+): Promise<{ id: string; name: string } | null | false> {
   const response = await fetch("/api/search/user", {
     method: "POST",
     headers: {
@@ -13,10 +15,13 @@ async function searchUserRepository(userId: string): Promise<{ id: string; name:
   });
 
   if (!response.ok) {
+    if (response.status === 400) {
+      return false;
+    }
     if (response.status === 404) {
       return null;
     }
-    throw { status: response.status };
+    throw new Error("Unknown error");
   }
 
   const data = await response.json();
@@ -59,17 +64,17 @@ function useUserSearch() {
     // catch文によるエラーハンドリング
     try {
       const user = await searchUserRepository(userId);
+      if (user === false) {
+        setSearchError("パラメータが不正です");
+        return;
+      }
       if (!user) {
         setSearchError("ユーザーが見つかりません");
         return;
       }
       setUser(user);
-    } catch (e: any) {
-      if (e.status === 400) {
-        setSearchError("パラメータが不正です");
-      } else {
-        setSearchError("検索に失敗しました");
-      }
+    } catch {
+      setSearchError("検索に失敗しました");
     }
   };
 
@@ -243,7 +248,9 @@ export default function SearchPage() {
               border: "none",
               borderRadius: "4px",
             }}
-          >フォロー</button>
+          >
+            フォロー
+          </button>
         </div>
       )}
     </div>
