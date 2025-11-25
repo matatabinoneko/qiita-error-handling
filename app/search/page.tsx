@@ -75,8 +75,8 @@ function useUserSearch() {
             setSearchError("ユーザーが見つかりません");
             return;
         }
-        setSearchError("検索に失敗しました");
       }
+      setSearchError("検索に失敗しました");
     }
   };
 
@@ -110,8 +110,8 @@ function useFollowUser() {
             setFollowError("ユーザーが見つかりません");
             return;
         }
-        setFollowError("フォローに失敗しました");
       }
+      setFollowError("フォローに失敗しました");
     }
   };
 
