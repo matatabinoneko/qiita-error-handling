@@ -1,12 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import {
-  BadRequestError,
-  NotFoundError,
-  UnexpectedError,
-  BadRequestAlreadyFollowedError,
-} from "@/lib/errors";
+import { CustomError, ErrorCode } from "@/lib/errors";
 
 // Repository: ユーザー検索
 async function searchUserRepository(
@@ -22,12 +17,12 @@ async function searchUserRepository(
 
   if (!response.ok) {
     if (response.status === 400) {
-      throw new BadRequestError("パラメータが不正です");
+      throw new CustomError("bad-request", "パラメータが不正です");
     }
     if (response.status === 404) {
-      throw new NotFoundError("ユーザーが見つかりません");
+      throw new CustomError("not-found", "ユーザーが見つかりません");
     }
-    throw new UnexpectedError("検索に失敗しました");
+    throw new CustomError("unexpected-error", "検索に失敗しました");
   }
 
   const data = await response.json();
@@ -43,16 +38,16 @@ async function followUserRepository(userId: string) {
   if (!response.ok) {
     // statusで判定
     if (response.status === 404) {
-      throw new NotFoundError();
+      throw new CustomError("not-found");
     }
     // errorCodeで判定
     const { errorCode } = await response.json();
     if (errorCode === 4001) {
-      throw new BadRequestError();
+      throw new CustomError("bad-request");
     } else if (errorCode === 4002) {
-      throw new BadRequestAlreadyFollowedError();
+      throw new CustomError("bad-request/already-followed");
     } else {
-      throw new UnexpectedError();
+      throw new CustomError("unexpected-error");
     }
   }
 }
@@ -71,11 +66,15 @@ function useUserSearch() {
       const user = await searchUserRepository(userId);
       setUser(user);
     } catch (error) {
-      if (error instanceof BadRequestError) {
-        setSearchError("パラメータが不正です");
-      } else if (error instanceof NotFoundError) {
-        setSearchError("ユーザーが見つかりません");
-      } else {
+      if (error instanceof CustomError) {
+        switch (error.code) {
+          case "bad-request":
+            setSearchError("パラメータが不正です");
+            return;
+          case "not-found":
+            setSearchError("ユーザーが見つかりません");
+            return;
+        }
         setSearchError("検索に失敗しました");
       }
     }
@@ -99,13 +98,18 @@ function useFollowUser() {
       // catch文によるエラーハンドリング
       await followUserRepository(userId);
     } catch (error) {
-      if (error instanceof BadRequestAlreadyFollowedError) {
-        setFollowError("既にフォロー済みです");
-      } else if (error instanceof BadRequestError) {
-        setFollowError("パラメータが不正です");
-      } else if (error instanceof NotFoundError) {
-        setFollowError("ユーザーが見つかりません");
-      } else {
+      if (error instanceof CustomError) {
+        switch (error.code) {
+          case "bad-request/already-followed":
+            setFollowError("既にフォロー済みです");
+            return;
+          case "bad-request":
+            setFollowError("パラメータが不正です");
+            return;
+          case "not-found":
+            setFollowError("ユーザーが見つかりません");
+            return;
+        }
         setFollowError("フォローに失敗しました");
       }
     }

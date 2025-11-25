@@ -1,30 +1,17 @@
-// カスタムエラークラス
+const errorCode = [
+  "bad-request",
+  "bad-request/already-followed",
+  "not-found",
+  "unexpected-error",
+] as const;
 
-export class BadRequestError extends Error {
-  constructor(message: string = "Bad Request") {
-    super(message);
-    this.name = "BadRequestError";
+export type ErrorCode = (typeof errorCode)[number];
+
+export class CustomError extends Error {
+  code: ErrorCode;
+  constructor(code: ErrorCode, message?: string) {
+    super(message ?? "CustomError");
+    this.name = "CustomError";
+    this.code = code;
   }
 }
-
-export class NotFoundError extends Error {
-  constructor(message: string = "Not Found") {
-    super(message);
-    this.name = "NotFoundError";
-  }
-}
-
-export class UnexpectedError extends Error {
-  constructor(message: string = "Unexpected Error") {
-    super(message);
-    this.name = "UnexpectedError";
-  }
-}
-
-export class BadRequestAlreadyFollowedError extends Error {
-  constructor(message: string = "Bad Request Already Followed") {
-    super(message);
-    this.name = "BadRequestAlreadyFollowedError";
-  }
-}
-
