@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const { userId } = body
 
     // パラメータ検証
-    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+    if (!userId || typeof userId !== 'string' || userId.trim() === '' || !userId.startsWith("user")) {
       return NextResponse.json(null, { status: 400 })
     }
 
