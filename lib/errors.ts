@@ -21,3 +21,10 @@ export class UnexpectedError extends Error {
   }
 }
 
+export class BadRequestAlreadyFollowedError extends Error {
+  constructor(message: string = "Bad Request Already Followed") {
+    super(message);
+    this.name = "BadRequestAlreadyFollowedError";
+  }
+}
+

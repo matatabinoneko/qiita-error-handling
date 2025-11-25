@@ -5,6 +5,7 @@ import {
   BadRequestError,
   NotFoundError,
   UnexpectedError,
+  BadRequestAlreadyFollowedError,
 } from "@/lib/errors";
 
 // Repository: ユーザー検索
@@ -34,7 +35,7 @@ async function searchUserRepository(
 }
 
 // Repository: ユーザーフォロー
-// Result型を使って返却する
+// カスタムエラーを投げる
 async function followUserRepository(userId: string) {
   const response = await fetch(`/api/user/${userId}/follow`, {
     method: "POST",
@@ -42,19 +43,18 @@ async function followUserRepository(userId: string) {
   if (!response.ok) {
     // statusで判定
     if (response.status === 404) {
-      return { isSuccess: false, errorCode: "user-not-found" };
+      throw new NotFoundError();
     }
     // errorCodeで判定
     const { errorCode } = await response.json();
-    if (errorCode === 400) {
-      return { isSuccess: false, errorCode: "invalid-parameter" };
+    if (errorCode === 4001) {
+      throw new BadRequestError();
     } else if (errorCode === 4002) {
-      return { isSuccess: false, errorCode: "already-followed" };
+      throw new BadRequestAlreadyFollowedError();
     } else {
-      return { isSuccess: false, errorCode: "follow-failed" };
+      throw new UnexpectedError();
     }
   }
-  return { isSuccess: true };
 }
 
 // カスタムフック: useUserSearch
@@ -96,26 +96,18 @@ function useFollowUser() {
     setFollowError(null);
 
     try {
-      // Result型によるエラーハンドリング
-      const result = await followUserRepository(userId);
-      if (!result.isSuccess) {
-        switch (result.errorCode) {
-          case "user-not-found":
-            setFollowError("ユーザーが見つかりません");
-            break;
-          case "already-followed":
-            setFollowError("既にフォロー済みです");
-            break;
-          case "invalid-parameter":
-            setFollowError("パラメータが不正です");
-            break;
-          case "follow-failed":
-          default:
-            setFollowError("フォローに失敗しました");
-            break;
-        }
+      // catch文によるエラーハンドリング
+      await followUserRepository(userId);
+    } catch (error) {
+      if (error instanceof BadRequestAlreadyFollowedError) {
+        setFollowError("既にフォロー済みです");
+      } else if (error instanceof BadRequestError) {
+        setFollowError("パラメータが不正です");
+      } else if (error instanceof NotFoundError) {
+        setFollowError("ユーザーが見つかりません");
+      } else {
+        setFollowError("フォローに失敗しました");
       }
-    } finally {
     }
   };
 
