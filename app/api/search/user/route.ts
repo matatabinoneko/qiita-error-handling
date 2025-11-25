@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { ErrorCode } from '@/lib/errors'
 
 // モックデータベース（実際の実装ではデータベースを使用）
 const mockUsers = [
@@ -16,24 +17,24 @@ export async function POST(request: NextRequest) {
 
     // パラメータ検証
     if (!userId || typeof userId !== 'string' || userId.trim() === '' || !userId.startsWith("user")) {
-      return NextResponse.json(null, { status: 400 })
+      return NextResponse.json({ errorCode: "bad-request" as ErrorCode }, { status: 400 })
     }
 
     // ユーザー検索
     const user = mockUsers.find(u => u.id === userId)
 
     if (!user) {
-      return NextResponse.json(null, { status: 404 })
+      return NextResponse.json({ errorCode: "not-found" as ErrorCode }, { status: 404 })
     }
 
     // ブロックチェック
     if (blockedUsers.includes(userId)) {
-      return NextResponse.json(null, { status: 404 })
+      return NextResponse.json({ errorCode: "not-found" as ErrorCode }, { status: 404 })
     }
 
     return NextResponse.json({ user })
   } catch (error) {
-    return NextResponse.json(null, { status: 400 })
+    return NextResponse.json({ errorCode: "bad-request" as ErrorCode }, { status: 400 })
   }
 }
 

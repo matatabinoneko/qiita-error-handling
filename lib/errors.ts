@@ -1,4 +1,4 @@
-const errorCode = [
+export const errorCode = [
   "bad-request",
   "bad-request/already-followed",
   "not-found",

@@ -16,6 +16,10 @@ async function searchUserRepository(
   });
 
   if (!response.ok) {
+    const { errorCode } = await response.json();
+    if (errorCode) {
+      throw new CustomError(errorCode as ErrorCode);
+    }
     if (response.status === 400) {
       throw new CustomError("bad-request", "パラメータが不正です");
     }
@@ -36,19 +40,15 @@ async function followUserRepository(userId: string) {
     method: "POST",
   });
   if (!response.ok) {
-    // statusで判定
+    const { errorCode } = await response.json();
+    if (errorCode) {
+      throw new CustomError(errorCode as ErrorCode);
+    }
+    // errorCodeがない場合のフォールバック
     if (response.status === 404) {
       throw new CustomError("not-found");
     }
-    // errorCodeで判定
-    const { errorCode } = await response.json();
-    if (errorCode === 4001) {
-      throw new CustomError("bad-request");
-    } else if (errorCode === 4002) {
-      throw new CustomError("bad-request/already-followed");
-    } else {
-      throw new CustomError("unexpected-error");
-    }
+    throw new CustomError("unexpected-error");
   }
 }
 

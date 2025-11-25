@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { ErrorCode } from '@/lib/errors'
 
 // モックデータベース
 const mockUsers = [
@@ -18,18 +19,18 @@ export async function POST(
 
     // パラメータ検証
     if (!userId || typeof userId !== 'string' || userId.trim() === '') {
-      return NextResponse.json({ errorCode: 4001 }, { status: 400 })
+      return NextResponse.json({ errorCode: "bad-request" as ErrorCode }, { status: 400 })
     }
 
     // ユーザー存在確認
     const user = mockUsers.find(u => u.id === userId)
     if (!user) {
-      return NextResponse.json({ errorCode: 4041 }, { status: 404 })
+      return NextResponse.json({ errorCode: "not-found" as ErrorCode }, { status: 404 })
     }
 
     // 既にフォロー済みかチェック
     if (followingUsers.has(userId)) {
-      return NextResponse.json({ errorCode: 4002 }, { status: 400 })
+      return NextResponse.json({ errorCode: "bad-request/already-followed" as ErrorCode }, { status: 400 })
     }
 
     // フォロー処理
@@ -37,7 +38,7 @@ export async function POST(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    return NextResponse.json({ errorCode: 4001 }, { status: 400 })
+    return NextResponse.json({ errorCode: "bad-request" as ErrorCode }, { status: 400 })
   }
 }
 
