@@ -1,11 +1,16 @@
 "use client";
 
 import { useState, useRef } from "react";
+import {
+  BadRequestError,
+  NotFoundError,
+  UnexpectedError,
+} from "@/lib/errors";
 
 // Repository: ユーザー検索
 async function searchUserRepository(
   userId: string
-): Promise<{ id: string; name: string } | null | false> {
+): Promise<{ id: string; name: string }> {
   const response = await fetch("/api/search/user", {
     method: "POST",
     headers: {
@@ -16,12 +21,12 @@ async function searchUserRepository(
 
   if (!response.ok) {
     if (response.status === 400) {
-      return false;
+      throw new BadRequestError("パラメータが不正です");
     }
     if (response.status === 404) {
-      return null;
+      throw new NotFoundError("ユーザーが見つかりません");
     }
-    throw new Error("Unknown error");
+    throw new UnexpectedError("検索に失敗しました");
   }
 
   const data = await response.json();
@@ -64,17 +69,15 @@ function useUserSearch() {
     // catch文によるエラーハンドリング
     try {
       const user = await searchUserRepository(userId);
-      if (user === false) {
-        setSearchError("パラメータが不正です");
-        return;
-      }
-      if (!user) {
-        setSearchError("ユーザーが見つかりません");
-        return;
-      }
       setUser(user);
-    } catch {
-      setSearchError("検索に失敗しました");
+    } catch (error) {
+      if (error instanceof BadRequestError) {
+        setSearchError("パラメータが不正です");
+      } else if (error instanceof NotFoundError) {
+        setSearchError("ユーザーが見つかりません");
+      } else {
+        setSearchError("検索に失敗しました");
+      }
     }
   };
 
