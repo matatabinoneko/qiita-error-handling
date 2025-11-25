@@ -1,18 +1,24 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { CustomError, ErrorCode } from "@/lib/errors";
+import { CustomError, errorCode, ErrorCode } from "@/lib/errors";
 import { z } from "zod";
 
 // Repository: ユーザー検索
-const searchUserResponseSchema = z.object(
+const searchUserResponseSchema = z.union([z.object(
   {
+    isSuccess: z.literal(true),
     user: z.object({
       id: z.string(),
       name: z.string(),
     }),
+  } 
+), z.object(
+  {
+    isSuccess: z.literal(false),
+    errorCode: z.literal(errorCode),
   }
-);
+)]);
 async function searchUserRepository(
   userId: string
 ) {
@@ -23,22 +29,11 @@ async function searchUserRepository(
     },
     body: JSON.stringify({ userId }),
   });
-
-  if (!response.ok) {
-    const { errorCode } = await response.json();
-    if (errorCode) {
-      throw new CustomError(errorCode as ErrorCode);
-    }
-    if (response.status === 400) {
-      throw new CustomError("bad-request", "パラメータが不正です");
-    }
-    if (response.status === 404) {
-      throw new CustomError("not-found", "ユーザーが見つかりません");
-    }
-    throw new CustomError("unexpected-error", "検索に失敗しました");
-  }
-
+  
   const data = searchUserResponseSchema.parse(await response.json());
+  if (!data.isSuccess) {
+      throw new CustomError(data.errorCode);
+  }
   return data.user;
 }
 

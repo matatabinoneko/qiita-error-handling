@@ -17,24 +17,24 @@ export async function POST(request: NextRequest) {
 
     // パラメータ検証
     if (!userId || typeof userId !== 'string' || userId.trim() === '' || !userId.startsWith("user")) {
-      return NextResponse.json({ errorCode: "bad-request" as ErrorCode }, { status: 400 })
+      return NextResponse.json({ isSuccess: false, errorCode: "bad-request" as ErrorCode }, { status: 400 })
     }
 
     // ユーザー検索
     const user = mockUsers.find(u => u.id === userId)
 
     if (!user) {
-      return NextResponse.json({ errorCode: "not-found" as ErrorCode }, { status: 404 })
+      return NextResponse.json({ isSuccess: false, errorCode: "not-found" as ErrorCode }, { status: 404 })
     }
 
     // ブロックチェック
     if (blockedUsers.includes(userId)) {
-      return NextResponse.json({ errorCode: "not-found" as ErrorCode }, { status: 404 })
+      return NextResponse.json({ isSuccess: false, errorCode: "not-found" as ErrorCode }, { status: 404 })
     }
 
-    return NextResponse.json({ user })
+    return NextResponse.json({ isSuccess: true, user })
   } catch (error) {
-    return NextResponse.json({ errorCode: "bad-request" as ErrorCode }, { status: 400 })
+    return NextResponse.json({ isSuccess: false, errorCode: "bad-request" as ErrorCode }, { status: 400 })
   }
 }
 
