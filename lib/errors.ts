@@ -1,8 +1,11 @@
 export const errorCode = [
+  // common error codes
   "bad-request",
-  "bad-request/already-followed",
   "not-found",
   "unexpected-error",
+
+  // for /api/user/[userId]/follow route
+  "bad-request/already-followed", 
 ] as const;
 
 export type ErrorCode = (typeof errorCode)[number];
