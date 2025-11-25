@@ -38,21 +38,24 @@ async function searchUserRepository(
 }
 
 // Repository: ユーザーフォロー
-// カスタムエラーを投げる
+const followUserResponseSchema = z.union([z.object(
+  {
+    isSuccess: z.literal(true),
+  } 
+), z.object(
+  {
+    isSuccess: z.literal(false),
+    errorCode: z.literal(errorCode),
+  }
+)]);
 async function followUserRepository(userId: string) {
   const response = await fetch(`/api/user/${userId}/follow`, {
     method: "POST",
   });
-  if (!response.ok) {
-    const { errorCode } = await response.json();
-    if (errorCode) {
-      throw new CustomError(errorCode as ErrorCode);
-    }
-    // errorCodeがない場合のフォールバック
-    if (response.status === 404) {
-      throw new CustomError("not-found");
-    }
-    throw new CustomError("unexpected-error");
+  
+  const data = followUserResponseSchema.parse(await response.json());
+  if (!data.isSuccess) {
+    throw new CustomError(data.errorCode);
   }
 }
 
