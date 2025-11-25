@@ -7,11 +7,20 @@ import {
   UnexpectedError,
   BadRequestAlreadyFollowedError,
 } from "@/lib/errors";
+import { z } from "zod";
 
 // Repository: ユーザー検索
+const searchUserResponseSchema = z.object(
+  {
+    user: z.object({
+      id: z.string(),
+      name: z.string(),
+    }),
+  }
+);
 async function searchUserRepository(
   userId: string
-): Promise<{ id: string; name: string }> {
+) {
   const response = await fetch("/api/search/user", {
     method: "POST",
     headers: {
@@ -30,7 +39,7 @@ async function searchUserRepository(
     throw new UnexpectedError("検索に失敗しました");
   }
 
-  const data = await response.json();
+  const data = searchUserResponseSchema.parse(await response.json());
   return data.user;
 }
 
