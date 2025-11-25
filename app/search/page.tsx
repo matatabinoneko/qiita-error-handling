@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 
 // Repository: ユーザー検索
-async function searchUserRepository(userId: string) {
+async function searchUserRepository(userId: string): Promise<{ id: string; name: string } | null> {
   const response = await fetch("/api/search/user", {
     method: "POST",
     headers: {
@@ -13,8 +13,8 @@ async function searchUserRepository(userId: string) {
   });
 
   if (!response.ok) {
-    if(response.status === 404) {
-        return null
+    if (response.status === 404) {
+      return null;
     }
     throw { status: response.status };
   }
@@ -35,8 +35,8 @@ async function followUserRepository(userId: string) {
       return { isSuccess: false, errorCode: "user-not-found" };
     }
     // errorCodeで判定
-    const {errorCode} = await response.json();
-     if (errorCode === 400) {
+    const { errorCode } = await response.json();
+    if (errorCode === 400) {
       return { isSuccess: false, errorCode: "invalid-parameter" };
     } else if (errorCode === 4002) {
       return { isSuccess: false, errorCode: "already-followed" };
@@ -49,12 +49,10 @@ async function followUserRepository(userId: string) {
 
 // カスタムフック: useUserSearch
 function useUserSearch() {
-  const [loading, setLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [user, setUser] = useState<{ id: string; name: string } | null>(null);
 
   const searchUser = async (userId: string) => {
-    setLoading(true);
     setSearchError(null);
     setUser(null);
 
@@ -72,14 +70,11 @@ function useUserSearch() {
       } else {
         setSearchError("検索に失敗しました");
       }
-    } finally {
-      setLoading(false);
     }
   };
 
   return {
     searchUser,
-    loading,
     searchError,
     user,
   };
@@ -87,16 +82,13 @@ function useUserSearch() {
 
 // カスタムフック: useFollowUser
 function useFollowUser() {
-  const [loading, setLoading] = useState(false);
   const [followError, setFollowError] = useState<string | null>(null);
 
   const followUser = async (userId: string) => {
-    setLoading(true);
     setFollowError(null);
 
-
     try {
-        // Result型によるエラーハンドリング
+      // Result型によるエラーハンドリング
       const result = await followUserRepository(userId);
       if (!result.isSuccess) {
         switch (result.errorCode) {
@@ -116,7 +108,6 @@ function useFollowUser() {
         }
       }
     } finally {
-      setLoading(false);
     }
   };
 
@@ -126,7 +117,6 @@ function useFollowUser() {
 
   return {
     followUser,
-    loading,
     followError,
     reset,
   };
@@ -135,14 +125,9 @@ function useFollowUser() {
 // ユーザー検索ページコンポーネント
 export default function SearchPage() {
   const userIdRef = useRef<HTMLInputElement>(null);
-  const {
-    searchUser,
-    loading: searchLoading,
-    searchError,
-    user,
-  } = useUserSearch();
+  const { searchUser, searchError, user } = useUserSearch();
 
-  const { followUser, loading: followLoading, followError, reset: resetFollowError } = useFollowUser();
+  const { followUser, followError, reset: resetFollowError } = useFollowUser();
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -183,12 +168,10 @@ export default function SearchPage() {
               border: "1px solid #ccc",
               borderRadius: "4px",
             }}
-            disabled={searchLoading}
           />
         </div>
         <button
           type="submit"
-          disabled={searchLoading}
           style={{
             padding: "0.5rem 1rem",
             fontSize: "1rem",
@@ -196,11 +179,9 @@ export default function SearchPage() {
             color: "white",
             border: "none",
             borderRadius: "4px",
-            cursor: searchLoading ? "not-allowed" : "pointer",
-            opacity: searchLoading ? 0.5 : 1,
           }}
         >
-          {searchLoading ? "検索中..." : "検索"}
+          検索
         </button>
       </form>
 
@@ -253,7 +234,6 @@ export default function SearchPage() {
           </p>
           <button
             onClick={handleFollow}
-            disabled={followLoading}
             style={{
               marginTop: "1rem",
               padding: "0.5rem 1rem",
@@ -262,12 +242,8 @@ export default function SearchPage() {
               color: "white",
               border: "none",
               borderRadius: "4px",
-              cursor: followLoading ? "not-allowed" : "pointer",
-              opacity: followLoading ? 0.5 : 1,
             }}
-          >
-            {followLoading ? "処理中..." : "フォロー"}
-          </button>
+          >フォロー</button>
         </div>
       )}
     </div>
