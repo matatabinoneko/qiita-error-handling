@@ -14,16 +14,26 @@ export class UserService {
    */
   async followUser(
     userId: string
-  ): Promise<{ success: boolean; errorCode?: ErrorCode }> {
+  ): Promise<
+    { success: true } | { success: false; errorCode: ErrorCode; status: number }
+  > {
     // パラメータ検証
     if (!userId || typeof userId !== "string" || userId.trim() === "") {
-      return { success: false, errorCode: "bad-request" as ErrorCode };
+      return {
+        success: false,
+        errorCode: "bad-request" as ErrorCode,
+        status: 400,
+      };
     }
 
     // ユーザー存在確認
     const userExists = await this.userRepository.exists(userId);
     if (!userExists) {
-      return { success: false, errorCode: "not-found" as ErrorCode };
+      return {
+        success: false,
+        errorCode: "not-found" as ErrorCode,
+        status: 404,
+      };
     }
 
     // 既にフォロー済みかチェック
@@ -32,6 +42,7 @@ export class UserService {
       return {
         success: false,
         errorCode: "bad-request/already-followed" as ErrorCode,
+        status: 400,
       };
     }
 
