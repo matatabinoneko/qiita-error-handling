@@ -5,23 +5,20 @@ import { CustomError, errorCode, ErrorCode } from "@/lib/errors";
 import { z } from "zod";
 
 // Repository: ユーザー検索
-const searchUserResponseSchema = z.union([z.object(
-  {
+const searchUserResponseSchema = z.union([
+  z.object({
     isSuccess: z.literal(true),
     user: z.object({
       id: z.string(),
       name: z.string(),
     }),
-  } 
-), z.object(
-  {
+  }),
+  z.object({
     isSuccess: z.literal(false),
     errorCode: z.literal(errorCode),
-  }
-)]);
-async function searchUserRepository(
-  userId: string
-) {
+  }),
+]);
+async function searchUserRepository(userId: string) {
   const response = await fetch("/api/search/user", {
     method: "POST",
     headers: {
@@ -29,10 +26,10 @@ async function searchUserRepository(
     },
     body: JSON.stringify({ userId }),
   });
-  
+
   const data = searchUserResponseSchema.parse(await response.json());
   if (!data.isSuccess) {
-      throw new CustomError(data.errorCode);
+    throw new CustomError(data.errorCode);
   }
   return data.user;
 }
