@@ -10,17 +10,13 @@ import { z } from "zod";
 
 
 // Repository: ユーザー検索
-const searchUserResponseSchema = z.object(
-  {
-    user: z.object({
-      id: z.string(),
-      name: z.string(),
-    }),
-  }
-);
-async function searchUserRepository(
-  userId: string
-) {
+const searchUserResponseSchema = z.object({
+  user: z.object({
+    id: z.string(),
+    name: z.string(),
+  }),
+});
+async function searchUserRepository(userId: string) {
   const response = await fetch("/api/search/user", {
     method: "POST",
     headers: {
@@ -105,27 +101,24 @@ function useFollowUser() {
   const followUser = async (userId: string) => {
     setFollowError(null);
 
-    try {
-      // Result型によるエラーハンドリング
-      const result = await followUserRepository(userId);
-      if (!result.isSuccess) {
-        switch (result.errorCode) {
-          case "user-not-found":
-            setFollowError("ユーザーが見つかりません");
-            break;
-          case "already-followed":
-            setFollowError("既にフォロー済みです");
-            break;
-          case "invalid-parameter":
-            setFollowError("パラメータが不正です");
-            break;
-          case "follow-failed":
-          default:
-            setFollowError("フォローに失敗しました");
-            break;
-        }
+    // Result型によるエラーハンドリング
+    const result = await followUserRepository(userId);
+    if (!result.isSuccess) {
+      switch (result.errorCode) {
+        case "user-not-found":
+          setFollowError("ユーザーが見つかりません");
+          break;
+        case "already-followed":
+          setFollowError("既にフォロー済みです");
+          break;
+        case "invalid-parameter":
+          setFollowError("パラメータが不正です");
+          break;
+        case "follow-failed":
+        default:
+          setFollowError("フォローに失敗しました");
+          break;
       }
-    } finally {
     }
   };
 
