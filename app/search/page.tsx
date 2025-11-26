@@ -5,17 +5,13 @@ import { CustomError, ErrorCode } from "@/lib/errors";
 import { z } from "zod";
 
 // Repository: ユーザー検索
-const searchUserResponseSchema = z.object(
-  {
-    user: z.object({
-      id: z.string(),
-      name: z.string(),
-    }),
-  }
-);
-async function searchUserRepository(
-  userId: string
-) {
+const searchUserResponseSchema = z.object({
+  user: z.object({
+    id: z.string(),
+    name: z.string(),
+  }),
+});
+async function searchUserRepository(userId: string) {
   const response = await fetch("/api/search/user", {
     method: "POST",
     headers: {
