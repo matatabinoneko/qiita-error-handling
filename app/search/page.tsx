@@ -46,7 +46,7 @@ async function followUserRepository(userId: string) {
     }
     // errorCodeで判定
     const { errorCode } = await response.json();
-    if (errorCode === 400) {
+    if (errorCode === 4001) {
       return { isSuccess: false, errorCode: "invalid-parameter" };
     } else if (errorCode === 4002) {
       return { isSuccess: false, errorCode: "already-followed" };
